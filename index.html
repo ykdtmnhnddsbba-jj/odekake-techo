@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f2f5f3">
+<title>おでかけ手帖</title>
+<style>
+:root{
+  --bg:#f2f5f3;--panel:#ffffff;--panel2:#e8eeeb;--line:#d8e0dc;--text:#1f2a27;--sub:#5f6e69;
+  --trip:#2f6f6a;--event:#b4462f;--soon:#c2410c;--ok:#2b8a57;--bad:#c92a4a;--on:#ffffff;
+  --radius:14px;color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121816;--panel:#1b2320;--panel2:#25302c;--line:#33413c;--text:#e8f0ed;--sub:#9fb1ab;
+  --trip:#7fd6c8;--event:#ff9f86;--soon:#ffa86b;--ok:#6ee7a8;--bad:#ff8fa3;--on:#121816;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121816;--panel:#1b2320;--panel2:#25302c;--line:#33413c;--text:#e8f0ed;--sub:#9fb1ab;
+  --trip:#7fd6c8;--event:#ff9f86;--soon:#ffa86b;--ok:#6ee7a8;--bad:#ff8fa3;--on:#121816;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;line-height:1.6}
+button,input,select,textarea{font:inherit;color:inherit}
+input,textarea,select{font-size:16px}/* iPhoneでズームしないように */
+header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{max-width:820px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.logo{font-weight:800;font-size:18px;letter-spacing:.04em;flex:1}
+.logo b{color:var(--trip)}
+.chip{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--sub);cursor:pointer;white-space:nowrap}
+.chip.ok{color:var(--ok)}.chip.bad{color:var(--bad)}
+main{max-width:820px;margin:0 auto;padding:14px 16px 140px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{flex:1;max-width:200px;background:none;border:0;padding:10px 0 12px;color:var(--sub);font-size:12px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs button span{font-size:20px;line-height:1}
+nav.tabs button.on{color:var(--text)}
+.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:31;width:58px;height:58px;border-radius:50%;border:0;background:var(--text);color:var(--bg);font-size:30px;line-height:1;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:14px;color:var(--text)}
+.btn.pri{background:var(--text);border-color:var(--text);color:var(--bg)}
+.btn.k{background:var(--k);border-color:var(--k);color:var(--on)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.k-trip{--k:var(--trip)}.k-event{--k:var(--event)}.k-soon{--k:var(--soon)}.k-ok{--k:var(--ok)}.k-sub{--k:var(--sub)}
+.sec{margin:18px 0 8px;display:flex;align-items:baseline;gap:8px}
+.sec h2{margin:0;font-size:16px;color:var(--k)}
+.sec small{color:var(--sub);font-size:12px}
+.sec .n{margin-left:auto;color:var(--sub);font-size:12px}
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.filters::-webkit-scrollbar{display:none}
+.filters button{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--sub);cursor:pointer}
+.filters button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.item{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--k);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:block;width:100%;text-align:left}
+.item .t{font-weight:700;display:flex;gap:8px;align-items:flex-start}
+.item .t .tt{flex:1;overflow-wrap:anywhere}
+.item .meta{color:var(--sub);font-size:13px;margin-top:2px;overflow-wrap:anywhere}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.bd{font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--sub);white-space:nowrap;font-weight:700}
+.bd.plan{color:var(--ok);border-color:var(--ok)}
+.bd.warn{color:var(--soon);border-color:var(--soon)}
+.bd.kind{color:var(--k);border-color:var(--k)}
+.empty{color:var(--sub);text-align:center;padding:14px 0;font-size:14px}
+.ask{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.intro{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;font-size:14px;color:var(--sub)}
+.intro b{color:var(--text)}
+/* パネル・フォーム */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.panel h2{margin:0 0 8px;font-size:16px}
+.hint{color:var(--sub);font-size:13px;margin:4px 0}
+.hint a{color:inherit}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.inp{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+textarea.inp{resize:vertical;min-height:70px}
+.lbl{font-size:12px;color:var(--sub);font-weight:700;margin:14px 0 4px;display:block}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg button{flex:1;min-width:64px;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:7px 4px;font-size:13px;cursor:pointer;color:var(--sub);font-weight:700}
+.seg button.on{background:var(--k,var(--text));border-color:var(--k,var(--text));color:var(--on)}
+.row2{display:flex;gap:6px;align-items:center}
+.row2 .inp{flex:1;min-width:0}
+.row2 span{color:var(--sub)}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-top:6px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--k,var(--trip))}
+.box{background:var(--panel2);border-radius:12px;padding:12px;margin-top:14px}
+.box h4{margin:0 0 4px;font-size:14px}
+.x{background:none;border:0;color:var(--sub);cursor:pointer;font-size:16px;padding:2px 6px}
+/* シート */
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:50;align-items:flex-end;justify-content:center}
+#sheet.on{display:flex}
+.sbox{background:var(--panel);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 16px calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:700px){#sheet{align-items:center}.sbox{border-radius:18px}}
+.shead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.shead h3{margin:0;flex:1;font-size:16px}
+.ttl{font-size:18px;font-weight:700}
+#toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;display:none;z-index:60;max-width:90vw;font-size:14px}
+</style>
+</head>
+<body>
+<header><div class="bar"><div class="logo">おでかけ<b>手帖</b></div><button class="chip" id="syncChip"></button></div></header>
+<main id="main"></main>
+<button class="fab" id="fab" aria-label="行きたいところを追加">＋</button>
+<nav class="tabs" id="nav"></nav>
+<div id="sheet"><div class="sbox" id="sbox"></div></div>
+<div id="toast"></div>
+<script src="../portal/lib/techo-google.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS_DB='odekakedb.v1',LS_SET='odekakedb.settings.v1',LS_UI='odekakedb.ui.v1';
+const SITE_URL='https://ykdtmnhnddsbba-jj.github.io/odekake-techo/';
+const NAZO_URL='https://ykdtmnhnddsbba-jj.github.io/nazotoki-techo/';
+const lsGet=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const isDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'');
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d,12)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
+const addYears=(s,n)=>{const [y,m,d]=s.split('-').map(Number);const last=new Date(y+n,m,0).getDate();return (y+n)+'-'+pad(m)+'-'+pad(Math.min(d,last))};
+const today=()=>ymd(new Date());
+const horizon=()=>{const d=parse(today());d.setMonth(d.getMonth()+3);return ymd(d)};   // 3ヵ月先
+const diff=s=>Math.round((parse(s)-parse(today()))/864e5);
+const nowIso=()=>new Date().toISOString();
+const WD=['日','月','火','水','木','金','土'];
+const fmtJ=s=>{const d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')'};
+const fmtY=s=>{const d=parse(s);return (d.getFullYear()!==parse(today()).getFullYear()?d.getFullYear()+'/':'')+fmtJ(s)};
+const range=(f,t)=>f===t?fmtY(f):fmtY(f)+'〜'+fmtY(t);
+const uid=p=>(p||'i')+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const okUrl=u=>/^https?:\/\//i.test(u||'');
+
+const KIND={trip:{label:'旅行先',icon:'🗾',when:'行きたい時期'},event:{label:'イベント',icon:'🎪',when:'開催期間'}};
+const STATUS={want:'行きたい',went:'行った',skip:'見送り'};
+const NEAR_DEADLINE=30;   // 締切が「近い」とみなす日数
+
+/* ---------- データ ----------
+   items: 行きたいところ（kind=trip 旅行先 / event イベント）
+   from/to: 行きたい時期・開催期間（yearly=true なら毎年くり返す。過ぎたら翌年に送って考える）
+   plan: {start,end,at} 予定の日（「カレンダーに追加」を押したら付く印）
+   deadline: 申込・チケットなどの締切（deadline_done=true で済み） */
+let settings=Object.assign({drive_linked:false,shiori_url:''},lsGet(LS_SET,{}));
+const CLIENT_ID='568813131190-9pb3hf0f3g3rbiglkq4nbk88g4eltk9p.apps.googleusercontent.com';
+const saveSettings=()=>lsSet(LS_SET,settings);
+let db=lsGet(LS_DB,null);
+if(!db||!db.items){db={schema_version:1,items:{}};lsSet(LS_DB,db)}
+const saveLocal=()=>lsSet(LS_DB,db);
+function changed(){saveLocal();scheduleSync();render()}
+
+const live=()=>Object.values(db.items).filter(i=>i&&!i.deleted);
+/* 次の「行ける期間」。毎年のものは、終わっていたら翌年に送る */
+function win(it){
+  let f=isDate(it.from)?it.from:(isDate(it.to)?it.to:null),t=isDate(it.to)?it.to:f;
+  if(!f)return null;
+  if(f>t)[f,t]=[t,f];
+  if(it.yearly){let n=0;while(t<today()&&n<50){f=addYears(f,1);t=addYears(t,1);n++}}
+  return {f,t};
+}
+const planOn=it=>it.plan&&isDate(it.plan.start);
+const planEnd=it=>planOn(it)?(isDate(it.plan.end)?it.plan.end:it.plan.start):null;
+/* 一覧での置き場所 */
+function bucket(it){
+  if(it.status==='went'||it.status==='skip')return it.status;
+  if(planOn(it))return planEnd(it)<today()?'ask':'plan';
+  const w=win(it);
+  if(!w)return 'any';
+  if(w.t<today())return 'over';
+  if(w.f<=horizon())return 'soon';
+  return 'later';
+}
+function deadlineNear(it){
+  if(it.status!=='want'||it.deadline_done||!isDate(it.deadline))return false;
+  const n=diff(it.deadline);return n>=0&&n<=NEAR_DEADLINE;
+}
+/* 書き込みはここに集約（updated_at を必ず更新） */
+function upd(id,patch,quiet){
+  const it=db.items[id];if(!it)return;
+  Object.assign(it,patch,{updated_at:nowIso()});
+  if(quiet){saveLocal();scheduleSync();renderMainOnly()}else changed();
+}
+function addItem(o){
+  const id=uid('o'),now=nowIso();
+  db.items[id]=Object.assign({id,title:'',kind:'trip',place:'',from:'',to:'',yearly:false,deadline:'',deadline_label:'',deadline_done:false,url:'',note:'',status:'want',plan:null,went_on:'',created_at:now,updated_at:now},o);
+  changed();return id;
+}
+function mergeDb(a,b){
+  const out={schema_version:1,items:{...a.items}};
+  for(const [id,x] of Object.entries(b.items||{})){const y=out.items[id];if(x&&(!y||(x.updated_at||'')>(y.updated_at||'')))out.items[id]=x}
+  return out;
+}
+const exportObj=()=>({_readme:'おでかけ手帖のデータ。items=行きたいところ（kind: trip=旅行先 / event=イベント、status: want=行きたい / went=行った / skip=見送り、from/to=行きたい時期・開催期間、yearly=毎年、plan={start,end,at}=予定の日（カレンダーに追加した印）、deadline=締切、deadline_done=締切の用事は済み、went_on=行った日、deleted=削除済み）。ポータルの「今日のまとめ」がこの形式を読む',...db});
+
+/* ---------- カレンダー（Googleカレンダーの登録画面を開くだけ。APIは使わない） ---------- */
+function gcalUrl(it,start,end){
+  const d=s=>s.replace(/-/g,'');
+  const details=[it.place&&('場所: '+it.place),okUrl(it.url)&&it.url,it.note,'おでかけ手帖: '+SITE_URL].filter(Boolean).join('\n');
+  const q=new URLSearchParams({action:'TEMPLATE',text:it.title,dates:d(start)+'/'+d(addDays(end,1)),details});
+  if(it.place)q.set('location',it.place);
+  return 'https://calendar.google.com/calendar/render?'+q.toString();
+}
+function shioriText(it){
+  const p=planOn(it)?range(it.plan.start,planEnd(it)):'（未定）';
+  return `【しおりを作りたい】${it.title}
+- 種類: ${KIND[it.kind].label}
+- 日程: ${p}
+${it.place?'- 場所: '+it.place+'\n':''}${okUrl(it.url)?'- 参考URL: '+it.url+'\n':''}${it.note?'- メモ: '+it.note.replace(/\n/g,' ')+'\n':''}
+この内容で旅のしおりの骨子を作りたい。`;
+}
+async function copy(text,msg){
+  try{await navigator.clipboard.writeText(text)}
+  catch(e){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(_){}ta.remove()}
+  toast(msg||'コピーしました');
+}
+
+/* ---------- Google Drive 同期（手帖共通 ../portal/lib/techo-google.js。トークンは全手帖で共有） ---------- */
+const DRIVE_NAME='odekake-db.json';
+const GA=window.TechoGoogle?TechoGoogle.create({site:'odekake',clientId:()=>CLIENT_ID}):null;
+let gMsg=GA?GA.message():'共通ファイル（portal/lib/techo-google.js）を読み込めませんでした。Drive同期は使えません';
+let driveFileId=settings.drive_file_id||null,syncing=false,syncTimer=null;
+function tokenOk(){const t=GA&&GA.token();return !!(t&&Date.now()<t.e-60000)}
+function setSync(s){
+  const map={off:['☁ Drive未連携',''],need:['☁ 要再接続','bad'],ok:['☁ 同期済み','ok'],dirty:['☁ 未同期…','bad'],busy:['☁ 同期中…',''],bad:['☁ 同期エラー','bad']};
+  const [t,cls]=map[s]||map.off,c=$('#syncChip');c.textContent=t;c.className='chip '+cls;
+}
+async function driveSync(interactive){
+  if(syncing||!GA)return false;
+  if(!tokenOk()){if(interactive){GA.redirect('',GA.DRIVE);return false}setSync('need');return false}
+  syncing=true;setSync('busy');
+  try{
+    // 読み込めないときは syncFile が例外を出す → 保存しない（他の端末の変更を消さないため）
+    const id=await GA.syncFile(DRIVE_NAME,driveFileId,remote=>{db=mergeDb(db,remote);saveLocal();render()},()=>JSON.stringify(exportObj(),null,1));
+    driveFileId=settings.drive_file_id=id;settings.drive_linked=true;saveSettings();setSync('ok');return true;
+  }catch(e){
+    if(e&&e.forget){driveFileId=settings.drive_file_id=null;saveSettings()}
+    setSync(interactive?'bad':'need');if(interactive)toast(e.message,5000);console.warn(e);return false;
+  }finally{syncing=false}
+}
+function scheduleSync(){
+  if(!settings.drive_linked)return;
+  setSync('dirty');clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>{if(tokenOk())driveSync(false);else setSync('need')},2500);
+}
+function gStartup(){
+  if(gMsg){const m=gMsg;gMsg='';setTimeout(()=>toast(m,6000),400)}
+  if(!GA)return;
+  if(tokenOk()){driveSync(false);return}          // 他の手帖でログイン済みならそのまま使う
+  if(!settings.drive_linked)return;
+  if(!GA.silentOk()){setSync('need');return}
+  GA.redirect('none',GA.DRIVE);
+}
+addEventListener('pageshow',e=>{if(e.persisted){syncing=false;if(settings.drive_linked)driveSync(false)}});
+$('#syncChip').onclick=()=>driveSync(true).then(ok=>{if(ok)toast('Driveと同期しました')});
+
+/* ---------- 画面 ---------- */
+let toastT;
+function toast(t,ms=2200){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>e.style.display='none',ms)}
+const ui=Object.assign({tab:'list',kind:'all'},lsGet(LS_UI,{}));
+const saveUi=()=>lsSet(LS_UI,{tab:ui.tab,kind:ui.kind});
+const TABS=[['list','📍','行きたい'],['done','✅','行った'],['settings','⚙','設定']];
+function renderNav(){$('#nav').innerHTML=TABS.map(([k,ic,l])=>`<button data-tab="${k}" class="${ui.tab===k?'on':''}"><span>${ic}</span>${l}</button>`).join('')}
+$('#nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.tab=b.dataset.tab;saveUi();render();scrollTo(0,0)};
+function render(){renderNav();renderMainOnly();if(sheetId&&$('#sheet').classList.contains('on')&&!db.items[sheetId])closeSheet()}
+function renderMainOnly(){const m=$('#main');({list:renderList,done:renderDone,settings:renderSettings}[ui.tab]||renderList)(m);$('#fab').style.display=ui.tab==='settings'?'none':''}
+
+function itemRow(it,b){
+  const w=win(it),bs=[];
+  bs.push(`<span class="bd kind">${KIND[it.kind].icon} ${KIND[it.kind].label}</span>`);
+  if(planOn(it)&&b!=='went')bs.push(`<span class="bd plan">📅 ${range(it.plan.start,planEnd(it))}</span>`);
+  if(b==='soon'){const n=diff(w.t);bs.push(`<span class="bd warn">予定なし${n<=14?'・あと'+n+'日で終わる':''}</span>`)}
+  if(deadlineNear(it)){const n=diff(it.deadline);bs.push(`<span class="bd warn">⏰ ${esc(it.deadline_label||'締切')} ${fmtJ(it.deadline)}（${n?'あと'+n+'日':'今日'}）</span>`)}
+  if(b==='went'&&isDate(it.went_on))bs.push(`<span class="bd plan">${fmtY(it.went_on)} に行った</span>`);
+  const meta=[it.place,w&&(KIND[it.kind].when+' '+range(w.f,w.t)+(it.yearly?'（毎年）':''))].filter(Boolean).join('・');
+  return `<div class="item k-${it.kind}" data-open="${it.id}" role="button" tabindex="0">
+    <div class="t"><span class="tt">${esc(it.title)}</span></div>
+    ${meta?`<div class="meta">${esc(meta)}</div>`:''}
+    <div class="badges">${bs.join('')}</div>
+    ${b==='ask'?`<div class="ask"><button class="btn sm k" data-went="${it.id}">行った！</button><button class="btn sm" data-unplan="${it.id}">行けなかった（予定を消す）</button></div>`:''}
+    ${b==='over'?`<div class="ask"><button class="btn sm" data-skip="${it.id}">見送りにする</button><button class="btn sm" data-open="${it.id}">時期を直す</button></div>`:''}
+  </div>`;
+}
+const SECS=[
+  ['ask','行った？','予定の日が過ぎたもの','k-ok'],
+  ['soon','3ヵ月以内・予定なし','忘れずに予定を入れる','k-soon'],
+  ['plan','予定あり','カレンダーに追加済み','k-ok'],
+  ['later','もう少し先','時期が3ヵ月より先','k-trip'],
+  ['any','いつでも','時期を決めていない','k-trip'],
+  ['over','期間が終わった','見送りにするか、時期を直す','k-sub']];
+function renderList(m){
+  const pass=i=>ui.kind==='all'||i.kind===ui.kind;
+  const items=live().filter(pass);
+  const groups={};items.forEach(i=>{const b=bucket(i);(groups[b]=groups[b]||[]).push(i)});
+  const key=i=>{const b=bucket(i),w=win(i);return b==='plan'||b==='ask'?i.plan.start:b==='soon'?w.t:w?w.f:(i.created_at||'')};
+  let html='';
+  if(!live().length)html+=`<div class="intro">行きたい<b>旅行先</b>や<b>イベント</b>を右下の「＋」で入れておく手帖です。時期を入れておくと、<b>3ヵ月以内で予定が入っていないもの</b>が上に出て、ポータルの「今日のまとめ」にも出ます。<br>謎解きの公演は<a href="${NAZO_URL}" target="_blank" rel="noopener noreferrer">謎解き手帖</a>へ。</div>`;
+  html+=`<div class="filters" style="margin-top:14px">${[['all','すべて'],['trip','🗾 旅行先'],['event','🎪 イベント']].map(([k,l])=>`<button data-kind="${k}" class="${ui.kind===k?'on':''}">${l}</button>`).join('')}</div>`;
+  const dl=items.filter(deadlineNear).sort((a,b)=>a.deadline<b.deadline?-1:1);
+  if(dl.length){
+    html+=`<div class="sec k-soon"><h2>締切が近い</h2><small>${NEAR_DEADLINE}日以内</small><span class="n">${dl.length}件</span></div>`;
+    html+=dl.map(i=>`<div class="item k-soon" data-open="${i.id}" role="button" tabindex="0"><div class="t"><span class="tt">⏰ ${esc(i.title)}</span></div><div class="meta">${esc(i.deadline_label||'締切')} ${fmtY(i.deadline)}（${diff(i.deadline)?'あと'+diff(i.deadline)+'日':'今日'}）</div><div class="ask"><button class="btn sm" data-ddone="${i.id}">済んだ</button></div></div>`).join('');
+  }
+  for(const [b,label,sub,k] of SECS){
+    const xs=(groups[b]||[]).sort((x,y)=>key(x)<key(y)?-1:1);
+    if(!xs.length&&b!=='soon')continue;
+    html+=`<div class="sec ${k}"><h2>${label}</h2><small>${sub}</small><span class="n">${xs.length}件</span></div>`;
+    html+=xs.length?xs.map(i=>itemRow(i,b)).join(''):`<div class="empty">なし</div>`;
+  }
+  m.innerHTML=html;
+}
+function renderDone(m){
+  const went=live().filter(i=>i.status==='went').sort((a,b)=>(b.went_on||b.updated_at)<(a.went_on||a.updated_at)?-1:1);
+  const skip=live().filter(i=>i.status==='skip').sort((a,b)=>b.updated_at<a.updated_at?-1:1);
+  let html=`<div class="sec k-ok"><h2>行った</h2><span class="n">${went.length}件</span></div>`;
+  html+=went.length?went.map(i=>itemRow(i,'went')).join(''):'<div class="empty">まだありません</div>';
+  html+=`<div class="sec k-sub"><h2>見送り</h2><span class="n">${skip.length}件</span></div>`;
+  html+=skip.length?skip.map(i=>itemRow(i,'skip')).join(''):'<div class="empty">なし</div>';
+  m.innerHTML=html;
+}
+function renderSettings(m){
+  const n=live().length;
+  m.innerHTML=`<div class="panel"><h2>Google Drive 同期</h2>
+  <p class="hint">スマホとPCで同じデータを使うために、Google Drive の「${DRIVE_NAME}」に保存します（他の手帖と同じ仕組み。どれかの手帖でログイン済みなら、そのまま同期します）。接続しなくても、この端末の中には保存されます。</p>
+  <div class="acts"><button class="btn pri" id="gConnect">${settings.drive_linked?'今すぐ同期':'Driveに接続'}</button>${settings.drive_linked?'<button class="btn danger" id="gOff">連携を解除</button>':''}</div></div>
+  <div class="panel"><h2>しおり作り</h2><p class="hint">行くことが決まったら、しおりは claude.ai の「旅行のしおり作り」プロジェクトで作ります。そのプロジェクトのURLを入れておくと、予定ありの項目に「しおり作りへ」ボタンが出ます。</p>
+  <label class="lbl">「旅行のしおり作り」プロジェクトのURL</label><input class="inp" id="shUrl" value="${esc(settings.shiori_url)}" placeholder="https://claude.ai/project/..." inputmode="url"></div>
+  <div class="panel"><h2>バックアップ</h2><p class="hint">いま ${n} 件。JSON で書き出し・読み込みできます（読み込みは今のデータとマージ）。</p>
+  <div class="acts"><button class="btn" id="exp">JSONを書き出す</button><label class="btn">JSONを読み込む<input type="file" id="imp" accept="application/json,.json" hidden></label></div></div>
+  <div class="panel"><h2>使い方</h2><ol class="hint" style="padding-left:20px">
+  <li>行きたい旅行先・イベントを「＋」で追加。時期（行きたい時期・開催期間）と締切があれば入れる</li>
+  <li>3ヵ月以内で予定が入っていないものが一覧の上と、ポータルの「今日のまとめ」に出る</li>
+  <li>行く日を決めたら「📅 カレンダーに追加」。Googleカレンダーの登録画面が開き、手帖には「予定あり」の印が付く</li>
+  <li>予定の日が過ぎたら「行った！」を押す。しおりは「旅行のしおり作り」プロジェクトで作る</li>
+  <li>謎解きの公演はここではなく<a href="${NAZO_URL}" target="_blank" rel="noopener noreferrer">謎解き手帖</a>へ</li></ol></div>`;
+  $('#gConnect').onclick=async()=>{if(await driveSync(true))toast('Driveと同期しました')};
+  const off=$('#gOff');if(off)off.onclick=()=>{settings.drive_linked=false;settings.drive_file_id=null;driveFileId=null;saveSettings();setSync('off');renderSettings(m)};
+  $('#shUrl').onchange=e=>{const v=e.target.value.trim();if(v&&!/^https:\/\/claude\.ai\//.test(v)){toast('claude.ai のURLを貼ってください');return}settings.shiori_url=v;saveSettings();toast(v?'保存しました':'消しました')};
+  $('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exportObj(),null,1)],{type:'application/json'}));a.download='odekake-db-'+today()+'.json';a.click()};
+  $('#imp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!j.items)throw 0;db=mergeDb(db,j);changed();toast('読み込みました')}catch(_){toast('読み込めませんでした（形式が違います）')}};
+}
+
+/* 一覧のクリック（委譲） */
+$('#main').addEventListener('click',e=>{
+  const t=e.target;
+  const k=t.closest('[data-kind]');if(k){ui.kind=k.dataset.kind;saveUi();renderMainOnly();return}
+  const w=t.closest('[data-went]');if(w){const it=db.items[w.dataset.went];upd(it.id,{status:'went',went_on:planOn(it)?it.plan.start:today()});toast('行った！に移しました');return}
+  const u=t.closest('[data-unplan]');if(u){upd(u.dataset.unplan,{plan:null});toast('予定を消しました。また予定を入れてね');return}
+  const s=t.closest('[data-skip]');if(s){upd(s.dataset.skip,{status:'skip'});toast('見送りにしました（「行った」タブにあります）');return}
+  const d=t.closest('[data-ddone]');if(d){upd(d.dataset.ddone,{deadline_done:true});toast('締切の用事を済みにしました');return}
+  const o=t.closest('[data-open]');if(o){openItem(o.dataset.open)}
+});
+$('#main').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('.item[data-open]'))openItem(e.target.dataset.open)});
+
+/* ---------- シート（追加・詳細） ---------- */
+let sheetId=null;
+function openSheet(html){$('#sbox').innerHTML=html;$('#sheet').classList.add('on');document.body.style.overflow='hidden'}
+function closeSheet(){$('#sheet').classList.remove('on');$('#sbox').innerHTML='';sheetId=null;document.body.style.overflow=''}
+$('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sheet').classList.contains('on'))closeSheet()});
+$('#fab').onclick=()=>openAdd();
+
+let addKind='trip';
+function openAdd(){
+  openSheet(`<div class="shead"><h3>行きたいところを追加</h3><button class="x" data-close>✕</button></div>
+  <input class="inp ttl" id="nT" placeholder="例：白川郷のライトアップ" autocomplete="off" enterkeyhint="done">
+  <label class="lbl">種類</label><div class="seg" id="nK">${Object.entries(KIND).map(([k,v])=>`<button class="k-${k} ${addKind===k?'on':''}" data-k="${k}">${v.icon} ${v.label}</button>`).join('')}</div>
+  <label class="lbl" id="nWl">${KIND[addKind].when}（わかれば）</label>
+  <div class="row2"><input class="inp" type="date" id="nF"><span>〜</span><input class="inp" type="date" id="nTo"></div>
+  <label class="chk"><input type="checkbox" id="nY" ${addKind==='trip'?'checked':''}>毎年（桜・紅葉など季節のもの）</label>
+  <label class="lbl">場所</label><input class="inp" id="nP" placeholder="例：岐阜県白川村">
+  <p class="hint">謎解きの公演は<a href="${NAZO_URL}" target="_blank" rel="noopener noreferrer">謎解き手帖</a>へ。</p>
+  <div class="acts"><button class="btn pri" id="nOk" style="flex:1">追加</button><button class="btn" id="nMore">追加して詳しく書く</button></div>`);
+  const t=$('#nT');setTimeout(()=>t.focus(),50);
+  $('#nK').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;addKind=b.dataset.k;$('#nK').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#nWl').textContent=KIND[addKind].when+'（わかれば）';$('#nY').checked=addKind==='trip'};
+  $('#nF').onchange=()=>{if(!$('#nTo').value||$('#nTo').value<$('#nF').value)$('#nTo').value=$('#nF').value};
+  const go=more=>{const v=t.value.trim();if(!v){t.focus();return}
+    const id=addItem({title:v,kind:addKind,from:$('#nF').value,to:$('#nTo').value||$('#nF').value,yearly:$('#nY').checked,place:$('#nP').value.trim()});
+    if(more)openItem(id);else{['#nT','#nF','#nTo','#nP'].forEach(s=>$(s).value='');t.focus();toast('追加しました（続けて入力できます）')}};
+  $('#nOk').onclick=()=>go(false);$('#nMore').onclick=()=>go(true);
+  t.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();go(false)}});
+}
+
+function openItem(id){
+  const it=db.items[id];if(!it)return;sheetId=id;
+  const w=win(it),p=planOn(it);
+  const defStart=p?it.plan.start:(w&&w.f>today()?w.f:today());
+  const defEnd=p?planEnd(it):defStart;
+  const shiori=p&&/^https:\/\/claude\.ai\//.test(settings.shiori_url||'');
+  openSheet(`<div class="k-${it.kind}">
+  <div class="shead"><h3 style="color:var(--k)">${KIND[it.kind].icon} ${KIND[it.kind].label}</h3><button class="x" data-close>✕</button></div>
+  <input class="inp ttl" data-f="title" value="${esc(it.title)}">
+  <label class="lbl">種類</label><div class="seg" data-seg="kind">${Object.entries(KIND).map(([k,v])=>`<button class="k-${k} ${it.kind===k?'on':''}" data-v="${k}">${v.icon} ${v.label}</button>`).join('')}</div>
+  <label class="lbl">状態</label><div class="seg" data-seg="status">${Object.entries(STATUS).map(([k,l])=>`<button class="${it.status===k?'on':''}" data-v="${k}">${l}</button>`).join('')}</div>
+  ${it.status==='went'?`<label class="lbl">行った日</label><input class="inp" type="date" data-d="went_on" value="${esc(it.went_on)}">`:''}
+
+  <div class="box"><h4>📅 予定</h4>
+  ${p?`<p class="hint"><b style="color:var(--ok)">予定あり：${range(it.plan.start,planEnd(it))}</b>（${it.plan.at?'印を付けた日 '+fmtY(it.plan.at.slice(0,10)):''}）</p>`:`<p class="hint">行く日を決めたら「カレンダーに追加」。Googleカレンダーの登録画面が開き、ここに「予定あり」の印が付きます。</p>`}
+  <div class="row2"><input class="inp" type="date" id="pS" value="${defStart}"><span>〜</span><input class="inp" type="date" id="pE" value="${defEnd}"></div>
+  <div class="acts"><button class="btn k" id="pCal" style="flex:1">📅 カレンダーに追加</button>${p?'<button class="btn" id="pDel">予定を消す</button>':'<button class="btn" id="pMark">印だけ付ける</button>'}</div>
+  ${p?`<div class="acts"><button class="btn" id="shCopy">🧳 しおり用にコピー</button>${shiori?`<a class="btn" href="${esc(settings.shiori_url)}" target="_blank" rel="noopener noreferrer">しおり作りへ</a>`:''}</div>
+  <p class="hint">しおりは「旅行のしおり作り」プロジェクトで作ります。${shiori?'':'プロジェクトのURLは設定タブで入れられます。'}</p>`:''}
+  </div>
+
+  <label class="lbl">${KIND[it.kind].when}</label>
+  <div class="row2"><input class="inp" type="date" data-d="from" value="${esc(it.from)}"><span>〜</span><input class="inp" type="date" data-d="to" value="${esc(it.to)}"></div>
+  <label class="chk"><input type="checkbox" id="iY" ${it.yearly?'checked':''}>毎年くり返す${it.yearly&&w&&w.f!==it.from?`（次は ${range(w.f,w.t)}）`:''}</label>
+  <label class="lbl">締切（申込・チケットなど）</label>
+  <div class="row2"><input class="inp" type="date" data-d="deadline" value="${esc(it.deadline)}"><input class="inp" data-f="deadline_label" value="${esc(it.deadline_label)}" placeholder="例：抽選申込"></div>
+  ${isDate(it.deadline)?`<label class="chk"><input type="checkbox" id="iDd" ${it.deadline_done?'checked':''}>締切の用事は済んだ</label>`:''}
+  <label class="lbl">場所</label><input class="inp" data-f="place" value="${esc(it.place)}">
+  <label class="lbl">URL</label><div class="row2"><input class="inp" data-f="url" value="${esc(it.url)}" placeholder="https://..." inputmode="url">${okUrl(it.url)?`<a class="btn" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">開く</a>`:''}</div>
+  <label class="lbl">メモ</label><textarea class="inp" data-f="note" rows="3" placeholder="誰と行きたいか、気になっていること、予算など">${esc(it.note)}</textarea>
+  <div class="acts" style="margin-top:18px;justify-content:space-between"><button class="btn danger" id="delIt">削除</button><button class="btn pri" data-close>閉じる</button></div>
+  </div>`);
+  const box=$('#sbox');
+  // 文字は入力のたびに保存（シートは描き直さないのでフォーカスが外れない）
+  box.querySelectorAll('[data-f]').forEach(el=>{
+    el.addEventListener('input',()=>{const k=el.dataset.f;const v=el.value;if(k==='title'&&!v.trim())return;upd(id,{[k]:k==='url'?v.trim():v},true)});
+    if(el.dataset.f==='url')el.addEventListener('change',()=>openItem(id));
+  });
+  box.querySelectorAll('[data-d]').forEach(el=>el.addEventListener('change',()=>{
+    const k=el.dataset.d,v=el.value,patch={[k]:v};
+    if(k==='from'&&v&&(!isDate(it.to)||it.to<v))patch.to=v;
+    if(k==='deadline')patch.deadline_done=false;
+    upd(id,patch);openItem(id)}));
+  box.querySelectorAll('[data-seg]').forEach(seg=>seg.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(!b)return;
+    const k=seg.dataset.seg,patch={[k]:b.dataset.v};
+    if(k==='status'&&b.dataset.v==='went'&&!isDate(it.went_on))patch.went_on=p?it.plan.start:today();
+    upd(id,patch);openItem(id)}));
+  $('#iY').onchange=e=>{upd(id,{yearly:e.target.checked});openItem(id)};
+  if($('#iDd'))$('#iDd').onchange=e=>{upd(id,{deadline_done:e.target.checked});openItem(id)};
+  $('#pS').onchange=()=>{if($('#pE').value<$('#pS').value)$('#pE').value=$('#pS').value};
+  const readPlan=()=>{const s=$('#pS').value,e2=$('#pE').value||s;if(!isDate(s)){toast('日付を選んでください');return null}return {start:s,end:e2<s?s:e2}};
+  $('#pCal').onclick=()=>{const r=readPlan();if(!r)return;
+    window.open(gcalUrl(db.items[id],r.start,r.end),'_blank','noopener');
+    upd(id,{plan:{...r,at:nowIso()},status:'want'});openItem(id);toast('予定ありの印を付けました')};
+  if($('#pMark'))$('#pMark').onclick=()=>{const r=readPlan();if(!r)return;upd(id,{plan:{...r,at:nowIso()},status:'want'});openItem(id);toast('予定ありの印を付けました')};
+  if($('#pDel'))$('#pDel').onclick=()=>{upd(id,{plan:null});openItem(id);toast('予定を消しました（カレンダーの予定は手で消してね）',4000)};
+  if($('#shCopy'))$('#shCopy').onclick=()=>copy(shioriText(db.items[id]),'コピーしました。「旅行のしおり作り」プロジェクトのチャットに貼ってください');
+  $('#delIt').onclick=()=>{if(!confirm('「'+db.items[id].title+'」を削除しますか？'))return;upd(id,{deleted:true});closeSheet();toast('削除しました')};
+  box.onclick=e=>{if(e.target.closest('[data-close]'))closeSheet()};
+}
+
+/* ---------- 起動 ---------- */
+setSync(settings.drive_linked?'need':'off');
+render();
+gStartup();
+// 日付が変わったら（スマホで開きっぱなしのとき）描き直す
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){renderMainOnly();if(settings.drive_linked&&tokenOk())driveSync(false)}});
+</script>
+</body>
+</html>
