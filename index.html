@@ -133,7 +133,9 @@ const NEAR_DEADLINE=30;   // 締切が「近い」とみなす日数
    from/to: 行きたい時期・開催期間（yearly=true なら毎年くり返す。過ぎたら翌年に送って考える）
    plan: {start,end,at} 予定の日（「カレンダーに追加」を押したら付く印）
    deadline: 申込・チケットなどの締切（deadline_done=true で済み） */
+const SHIORI_URL='https://claude.ai/project/01a1bb17-511c-72cc-bb3e-5f7872640c18';   // 「旅行のしおり作り」プロジェクト（設定タブで上書きできる）
 let settings=Object.assign({drive_linked:false,shiori_url:''},lsGet(LS_SET,{}));
+if(!settings.shiori_url)settings.shiori_url=SHIORI_URL;
 const CLIENT_ID='568813131190-9pb3hf0f3g3rbiglkq4nbk88g4eltk9p.apps.googleusercontent.com';
 const saveSettings=()=>lsSet(LS_SET,settings);
 let db=lsGet(LS_DB,null);
@@ -326,7 +328,7 @@ function renderSettings(m){
   <li>謎解きの公演はここではなく<a href="${NAZO_URL}" target="_blank" rel="noopener noreferrer">謎解き手帖</a>へ</li></ol></div>`;
   $('#gConnect').onclick=async()=>{if(await driveSync(true))toast('Driveと同期しました')};
   const off=$('#gOff');if(off)off.onclick=()=>{settings.drive_linked=false;settings.drive_file_id=null;driveFileId=null;saveSettings();setSync('off');renderSettings(m)};
-  $('#shUrl').onchange=e=>{const v=e.target.value.trim();if(v&&!/^https:\/\/claude\.ai\//.test(v)){toast('claude.ai のURLを貼ってください');return}settings.shiori_url=v;saveSettings();toast(v?'保存しました':'消しました')};
+  $('#shUrl').onchange=e=>{const v=e.target.value.trim();if(v&&!/^https:\/\/claude\.ai\//.test(v)){toast('claude.ai のURLを貼ってください');return}settings.shiori_url=v||SHIORI_URL;saveSettings();e.target.value=settings.shiori_url;toast(v?'保存しました':'元のURLに戻しました')};
   $('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exportObj(),null,1)],{type:'application/json'}));a.download='odekake-db-'+today()+'.json';a.click()};
   $('#imp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!j.items)throw 0;db=mergeDb(db,j);changed();toast('読み込みました')}catch(_){toast('読み込めませんでした（形式が違います）')}};
 }
